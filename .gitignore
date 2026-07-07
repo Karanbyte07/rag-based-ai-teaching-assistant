@@ -1,0 +1,17 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor temp files
+tempCodeRunnerFile.py
+
+# Generated audio exports
+audios/*.mp3
+
+# Source videos folder
+videos/
