@@ -10,8 +10,5 @@ env/
 # Editor temp files
 tempCodeRunnerFile.py
 
-# Generated audio exports
-audios/*.mp3
 
-# Source videos folder
-videos/
+data/
