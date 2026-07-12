@@ -1,8 +1,9 @@
 import whisper
 
-model = whisper.load_model("base")
+model = whisper.load_model("large-v2")
 result = model.transcribe(
-	"data/audios/6_Binary & Decimal Number System.mp3",
+	audio = "data/audios/6_Binary & Decimal Number System.mp3",
+	# audio = "sample_audio2.m4a",
 	language="hi",
 	task="translate",
 )
