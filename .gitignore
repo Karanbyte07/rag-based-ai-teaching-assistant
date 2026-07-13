@@ -12,3 +12,6 @@ tempCodeRunnerFile.py
 
 
 data/
+
+# Environment variables
+.env
