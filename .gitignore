@@ -14,4 +14,7 @@ tempCodeRunnerFile.py
 data/
 
 # Environment variables
-.env
+.env
+
+
+.vscode/
