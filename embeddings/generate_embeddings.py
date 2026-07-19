@@ -2,17 +2,9 @@ import requests
 import json
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-
-env_path = Path(__file__).resolve().parents[1] / ".env"
-if env_path.exists():
-    for line in env_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
-
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 AZURE_EMBEDDING_ENDPOINT = os.getenv("AZURE_EMBEDDING_ENDPOINT", "").rstrip("/")
 AZURE_EMBEDDING_MODEL = os.getenv("AZURE_EMBEDDING_MODEL", "text-embedding-3-small")
@@ -50,10 +42,6 @@ chunks_dir = "data/chunks"
 
 #loop through every file inside the chunks directory
 for file in os.listdir(chunks_dir):
-
-    #skip the file if it is not a json file
-    if not file.endswith(".json"):
-        continue
 
     #build complete file path
     path = os.path.join(chunks_dir, file)
