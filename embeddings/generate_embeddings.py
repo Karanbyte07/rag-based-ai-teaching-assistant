@@ -3,13 +3,18 @@ import json
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 AZURE_EMBEDDING_ENDPOINT = os.getenv("AZURE_EMBEDDING_ENDPOINT", "").rstrip("/")
 AZURE_EMBEDDING_MODEL = os.getenv("AZURE_EMBEDDING_MODEL", "text-embedding-3-small")
 AZURE_EMBEDDING_DEPLOYMENT = os.getenv("AZURE_EMBEDDING_DEPLOYMENT", "")
-AZURE_EMBEDDING_OPENAI_API_VERSION = os.getenv("AZURE_EMBEDDING_OPENAI_API_VERSION", "2023-05-15")
+AZURE_EMBEDDING_OPENAI_API_VERSION = os.getenv(
+    "AZURE_EMBEDDING_OPENAI_API_VERSION", "2023-05-15"
+)
 AZURE_EMBEDDING_OPEN_API_KEY = os.getenv("AZURE_EMBEDDING_OPEN_API_KEY", "")
 AZURE_EMBEDDING_CHUNK_SIZE = int(os.getenv("AZURE_EMBEDDING_CHUNK_SIZE", "1000"))
 
@@ -25,7 +30,10 @@ def create_embedding(texts):
         batch = texts[i : i + AZURE_EMBEDDING_CHUNK_SIZE]
         r = requests.post(
             url,
-            headers={"api-key": AZURE_EMBEDDING_OPEN_API_KEY, "Content-Type": "application/json"},
+            headers={
+                "api-key": AZURE_EMBEDDING_OPEN_API_KEY,
+                "Content-Type": "application/json",
+            },
             json={"input": batch, "model": AZURE_EMBEDDING_MODEL},
             timeout=120,
         )
@@ -40,34 +48,56 @@ def create_embedding(texts):
 
 chunks_dir = "data/chunks"
 
-#loop through every file inside the chunks directory
+# loop through every file inside the chunks directory
 for file in os.listdir(chunks_dir):
-
-    #build complete file path
+    # build complete file path
     path = os.path.join(chunks_dir, file)
 
-    #read chunks from json file
-    with open(path, "r") as f:
+    # read chunks from json file
+    with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    
-    #extract the text from the chunks
+
+    # extract the text from the chunks
     texts = [chunk["text"] for chunk in data["chunks"]]
 
+    print(f"create embedding for {file}")
 
-    #create embeddings in one batch for all the texts
+    # create embeddings in one batch for all the texts
     embeddings = create_embedding(texts)
 
     # print(f"Created {len(embeddings)} embeddings for {file}")
-    
-    # final data to save 
+
+    # final data to save
     embedded_data = []
 
     # combine metadata and embeddings for each chunk
     for i, chunk in enumerate(data["chunks"]):
-         embedded_data.append({ 
-            "chunk_id": i,
-            **chunk, #it take all the arguments in chunks.json here.
-            "embedding": embeddings[i]
-            })
+        embedded_data.append(
+            {
+                "chunk_id": i,
+                **chunk,  # it take all the arguments in chunks.json here.
+                "embedding": embeddings[i],
+            }
+        )
+        if i == 1:
+            break
+    break
+    # print(embedded_data)
 
-    print(embedded_data)
+# embedding into panda dataframe
+df = pd.DataFrame.from_records(embedded_data)
+# print(df)
+
+# give a query
+incoming_query = input("Ask a question: ")
+question_embedding = create_embedding([incoming_query])[0]
+
+# cosine similarity between query
+
+similarity = cosine_similarity(np.vstack(df['embedding']), [question_embedding])
+print(similarity.shape)
+print(similarity)
+max_idx = similarity.flatten().argmax()
+
+new_df = df.iloc[max_idx]
+print(new_df[["tutorial_number", "tutorial_name", "duration", "text"]])
