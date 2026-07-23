@@ -39,9 +39,6 @@ for file in os.listdir(chunks_dir):
                 "embedding": embeddings[i],
             }
         )
-        if i == 1:
-            break
-    break
     # print(embedded_data)
 
 

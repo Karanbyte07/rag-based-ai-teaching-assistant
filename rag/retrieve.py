@@ -16,5 +16,7 @@ def retrieve(incoming_query, top_k = 5):
     
     top_indices = similarity.argsort()[-top_k:][::-1]
 
-    print("Retreived successfully")
+    
     return df.iloc[top_indices]
+
+print("Retreived successfully")
