@@ -1,7 +1,7 @@
-from retreive import retreive
+from retrieve import retrieve
 
 incoming_query = input("Ask a question: ")
-results = retreive(incoming_query)
+results = retrieve(incoming_query)
 
 # print(results[["tutorial_number", "tutorial_name", "duration", "text"]])
 

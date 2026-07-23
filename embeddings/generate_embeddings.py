@@ -1,8 +1,6 @@
 import json
 import os
 import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 import joblib
 
 from embedding_utils import create_embedding

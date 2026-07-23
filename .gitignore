@@ -18,3 +18,6 @@ data/
 
 
 .vscode/
+
+#init file
+__init__.py

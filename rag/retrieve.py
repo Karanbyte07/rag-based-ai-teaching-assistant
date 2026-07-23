@@ -7,7 +7,7 @@ from embeddings.embedding_utils import create_embedding
 #load the save embeddings dataframe
 df = joblib.load("data/embeddings/embeddings.pkl")
 
-def retreive(incoming_query, top_k = 5):
+def retrieve(incoming_query, top_k = 5):
     # create embedding for the query
     question_embedding = create_embedding([incoming_query])[0]
 
@@ -16,4 +16,5 @@ def retreive(incoming_query, top_k = 5):
     
     top_indices = similarity.argsort()[-top_k:][::-1]
 
+    print("Retreived successfully")
     return df.iloc[top_indices]
