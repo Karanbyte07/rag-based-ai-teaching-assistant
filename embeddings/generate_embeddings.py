@@ -53,21 +53,3 @@ df = pd.DataFrame.from_records(embedded_data)
 joblib.dump(df, "data/embeddings/embeddings.pkl")
 
 print("Embeddings Saved Successfully")
-
-
-
-# print(df)
-
-# give a query
-incoming_query = input("Ask a question: ")
-question_embedding = create_embedding([incoming_query])[0]
-
-# cosine similarity between query
-
-similarity = cosine_similarity(np.vstack(df["embedding"]), [question_embedding])
-print(similarity.shape)
-print(similarity)
-max_idx = similarity.flatten().argmax()
-
-new_df = df.iloc[max_idx]
-print(new_df[["tutorial_number", "tutorial_name", "duration", "text"]])
