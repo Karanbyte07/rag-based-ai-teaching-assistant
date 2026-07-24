@@ -1,7 +1,23 @@
 from rag.retrieve import retrieve
+from openai import OpenAI
+import os
+
 
 incoming_query = input("Ask a question: ")
 results = retrieve(incoming_query)
+
+client = OpenAI(
+    base_url = os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+)
+
+def inference_openai(prompt):
+    response = client.chat.completions.create(
+        model = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+        messages = [{"role": "user", "content": prompt}],
+    )
+    return response
+    
 
 prompt = f"""You are an expert AI teaching assistant for a programming course. \
 Your role is to help students find exactly where specific topics are covered in the course videos.
@@ -32,3 +48,8 @@ STUDENT QUESTION:
 with open("prompt.txt", "w", encoding="utf-8") as f:
     f.write(prompt)
     
+response = inference_openai(prompt)
+# print(response.choices[0].message.content)
+
+with open("response.txt", "w", encoding="utf-8") as f:
+    f.write(response.choices[0].message.content)
