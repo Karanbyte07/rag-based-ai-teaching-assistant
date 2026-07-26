@@ -13,6 +13,7 @@ client = AzureOpenAI(
     azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"),
     api_key = os.getenv("AZURE_OPENAI_API_KEY"),
     azure_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+    api_version = "2025-04-01-preview",
 )
 
 def inference_openai(prompt):
