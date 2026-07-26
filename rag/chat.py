@@ -1,14 +1,18 @@
 from rag.retrieve import retrieve
-from openai import OpenAI
+from openai import AzureOpenAI
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 
 incoming_query = input("Ask a question: ")
 results = retrieve(incoming_query)
 
-client = OpenAI(
-    base_url = os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_key = os.getenv("AZURE_OPENAI_API_KEY")
+client = AzureOpenAI(
+    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"),
+    api_key = os.getenv("AZURE_OPENAI_API_KEY"),
+    azure_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
 )
 
 def inference_openai(prompt):
