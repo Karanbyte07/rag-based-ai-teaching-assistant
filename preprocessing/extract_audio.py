@@ -12,5 +12,5 @@ for file in files:
     file_name = parts[1].split(".mkv")[0].strip()
 
     print(f"Tutorial Number: {file_number}")
-    print(f"Tutorial Name: {file_number}")
+    print(f"Tutorial Name: {file_name}")
     subprocess.run(["ffmpeg", "-i", f"videos/{file}", f"audios/{file_number}_{file_name}.mp3"])
