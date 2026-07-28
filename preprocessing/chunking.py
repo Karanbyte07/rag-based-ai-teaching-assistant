@@ -27,21 +27,19 @@ for transcript_file in os.listdir("data/transcripts"):
     # Creating chunks from the segments
     chunk_id = 0
     merged_chunks = []
-    current_text = ""
+    current_segments = []
     current_start = None
     current_end = None
 
-    for segment in result["segments"]:
-
-        # First segment of current chunk
-        if current_start is None:
-            current_start = segment["start"]
-
-        current_text += " " + segment["text"]
+    for segment in result["segments"]:    
+        
+        current_segments.append((segment["text"], segment["start"], segment["end"]))
         current_end = segment["end"]
+        current_start = current_segments[0][1]  # first segment ka start time
 
         # Check if chunk has reached the desired size
         if current_end - current_start >= CHUNK_SIZE:
+            chunk_text = " ".join(s[0] for s in current_segments).strip()
             merged_chunks.append(
                 {
                     "chunk_id": chunk_id,
@@ -50,19 +48,18 @@ for transcript_file in os.listdir("data/transcripts"):
                     "start": current_start,
                     "end": current_end,
                     "duration": current_end - current_start,
-                    "text": current_text.strip(),
+                    "text": chunk_text,
                 }
             )
             chunk_id += 1
 
-            # Reset for next chunk
-            current_text = ""
-            current_start = None
-            current_end = None
-
-    chunk_with_metadata = {"chunks": merged_chunks, "text": result["text"]}
+            # Add overlap for next chunk
+            overlap_start_time = current_end - OVERLAP
+            current_segments = [s for s in current_segments if s[2] >= overlap_start_time]
 
     # Save using same filename (using absolute path via chunk_dir)
+    chunk_with_metadata = {"chunks": merged_chunks, "text": result["text"]}
+
     output_file = filename + "_chunks.json"
     with open(os.path.join(chunk_dir, output_file), "w", encoding="utf-8") as f:
         json.dump(chunk_with_metadata, f, ensure_ascii=False, indent=2)
