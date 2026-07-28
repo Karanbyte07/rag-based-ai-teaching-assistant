@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-files = os.listdir("videos")
+files = os.listdir("data/videos")
 for file in files:
     # Divide the file name using the actual colon in the filename.
     parts = file.split("：", 1)
@@ -13,4 +13,4 @@ for file in files:
 
     print(f"Tutorial Number: {file_number}")
     print(f"Tutorial Name: {file_name}")
-    subprocess.run(["ffmpeg", "-i", f"videos/{file}", f"audios/{file_number}_{file_name}.mp3"])
+    subprocess.run(["ffmpeg", "-i", f"data/videos/{file}", f"data/audios/{file_number}_{file_name}.mp3"])
