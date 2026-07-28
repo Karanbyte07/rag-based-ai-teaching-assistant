@@ -5,4 +5,5 @@ scikit-learn
 numpy
 pandas
 joblib
-openai-whisper
+yt-dlp
+faster-whisper
