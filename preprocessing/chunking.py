@@ -1,68 +1,36 @@
-import json
-import os
-
-base_dir = os.path.dirname(os.path.dirname(__file__))
-
-chunk_dir = os.path.join(base_dir, "data", "chunks")
-
-# Ensure the output directory exists (creates it if not present)
-os.makedirs(chunk_dir, exist_ok=True)
-
 CHUNK_SIZE = 45
 OVERLAP = 10
 
-# Loop through every transcript
-for transcript_file in os.listdir("data/transcripts"):
-    with open(f"data/transcripts/{transcript_file}", "r", encoding="utf-8") as f:
-        result = json.load(f)
-
-    # Remove .json extension
-    filename = transcript_file.replace(".json", "")
-
-    # Extract tutorial number and tutorial name
-    if "_" in filename:
-        tutorial_num = filename.split("_")[0]
-        tutorial_name = filename.split("_")[1]
-
-    # Creating chunks from the segments
+def chunk_segments(segments: list[dict], video_id: str, title: str) -> list[dict]:
+    """
+    Takes raw Whisper/faster-whisper segments and merges them into
+    overlapping chunks. Works in-memory — no file I/O.
+    """
     chunk_id = 0
     merged_chunks = []
     current_segments = []
     current_start = None
     current_end = None
 
-    for segment in result["segments"]:    
-        
+    for segment in segments:
         current_segments.append((segment["text"], segment["start"], segment["end"]))
         current_end = segment["end"]
-        current_start = current_segments[0][1]  # first segment ka start time
+        current_start = current_segments[0][1]
 
-        # Check if chunk has reached the desired size
         if current_end - current_start >= CHUNK_SIZE:
             chunk_text = " ".join(s[0] for s in current_segments).strip()
-            merged_chunks.append(
-                {
-                    "chunk_id": chunk_id,
-                    "tutorial_number": tutorial_num,
-                    "tutorial_name": tutorial_name,
-                    "start": current_start,
-                    "end": current_end,
-                    "duration": current_end - current_start,
-                    "text": chunk_text,
-                }
-            )
+            merged_chunks.append({
+                "chunk_id": chunk_id,
+                "video_id": video_id,
+                "title": title,
+                "start": current_start,
+                "end": current_end,
+                "duration": current_end - current_start,
+                "text": chunk_text,
+            })
             chunk_id += 1
 
-            # Add overlap for next chunk
             overlap_start_time = current_end - OVERLAP
             current_segments = [s for s in current_segments if s[2] >= overlap_start_time]
 
-    # Save using same filename (using absolute path via chunk_dir)
-    chunk_with_metadata = {"chunks": merged_chunks, "text": result["text"]}
-
-    output_file = filename + "_chunks.json"
-    with open(os.path.join(chunk_dir, output_file), "w", encoding="utf-8") as f:
-        json.dump(chunk_with_metadata, f, ensure_ascii=False, indent=2)
-    print(f"Saved {output_file} in {chunk_dir}")
-
-print("All transcripts converted into chunks successfully!")
+    return merged_chunks

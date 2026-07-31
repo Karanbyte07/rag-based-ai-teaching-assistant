@@ -1,6 +1,8 @@
 from faster_whisper import WhisperModel
 
+print("loading the model.....")
 model = WhisperModel("base", device="cpu", compute_type="int8")
+print("model loaded")
 
 def transcribe_audio(audio_path: str) -> list[dict]:
     segments, info = model.transcribe(
