@@ -1,6 +1,6 @@
 from ingestion.youtube_ingest import download_audio, transcribe_audio
 from preprocessing.chunking import chunk_segments  
-from embeddings.generate_embeddings import embed_and_store
+from embeddings.faiss_store import embed_and_store
 
 def ingest_video(video_url: str) -> dict:
     print(f"Downloading: {video_url}")
