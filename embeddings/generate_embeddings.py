@@ -1,50 +1,29 @@
-import json
-import os
+# embeddings/generate_embeddings.py
+
 import pandas as pd
 import joblib
+import os
+from embeddings.embedding_utils import create_embedding
 
-from embedding_utils import create_embedding
+EMBEDDINGS_PATH = "data/embeddings/embeddings.pkl"
 
-chunks_dir = "data/chunks"
+def embed_and_store(chunks: list[dict]):
+    os.makedirs("data/embeddings", exist_ok=True)
 
-# final data to save
-embedded_data = []
-
-# loop through every file inside the chunks directory
-for file in os.listdir(chunks_dir):
-    # build complete file path
-    path = os.path.join(chunks_dir, file)
-
-    # read chunks from json file
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    # extract the text from the chunks
-    texts = [chunk["text"] for chunk in data["chunks"]]
-
-    print(f"creating embedding for {file}")
-
-    # create embeddings in one batch for all the texts
+    texts = [chunk["text"] for chunk in chunks]
     embeddings = create_embedding(texts)
 
-    # print(f"Created {len(embeddings)} embeddings for {file}")
+    for i, chunk in enumerate(chunks):
+        chunk["embedding"] = embeddings[i]
 
+    new_df = pd.DataFrame.from_records(chunks)
 
-    # combine metadata and embeddings for each chunk
-    for i, chunk in enumerate(data["chunks"]):
-        embedded_data.append(
-            {
-                "chunk_id": i,
-                **chunk,  # it take all the arguments in chunks.json here.
-                "embedding": embeddings[i],
-            }
-        )
-    # print(embedded_data)
+    # append to existing embeddings if file already exists
+    if os.path.exists(EMBEDDINGS_PATH):
+        old_df = joblib.load(EMBEDDINGS_PATH)
+        combined_df = pd.concat([old_df, new_df], ignore_index=True)
+    else:
+        combined_df = new_df
 
-
-# save embedding into panda dataframe
-df = pd.DataFrame.from_records(embedded_data)
-
-joblib.dump(df, "data/embeddings/embeddings.pkl")
-
-print("Embeddings Saved Successfully")
+    joblib.dump(combined_df, EMBEDDINGS_PATH)
+    print(f"Stored {len(chunks)} chunks. Total in store: {len(combined_df)}")

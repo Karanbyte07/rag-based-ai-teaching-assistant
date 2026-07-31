@@ -1,0 +1,10 @@
+openai
+python-dotenv
+sentence-transformers
+scikit-learn
+numpy
+pandas
+joblib
+yt-dlp
+faster-whisper
+faiss-cpu

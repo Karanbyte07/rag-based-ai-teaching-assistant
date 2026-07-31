@@ -1,22 +1,45 @@
+import faiss
 import numpy as np
-import joblib
-from sklearn.metrics.pairwise import cosine_similarity
 from embeddings.embedding_utils import create_embedding
+from embeddings.faiss_store import _load_or_create_index
+
+# embed the query using create_embedding function
+# retrieve top_k similar chunks using faiss.search() and if the video id is not none then filter the chunks
+
+def retrieve(incoming_query: str, top_k: int = 5, video_id: str = None):
+    index, metadata = _load_or_create_index()
+
+    if index.ntotal == 0:
+        return []
+
+    query_embedding = create_embedding([incoming_query])[0]
+    query_array = np.array([query_embedding], dtype="float32")
+    faiss.normalize_L2(query_array)
+
+    # if video id is given, search for more chunks because 
+    # 1. video id can't be used as faiss filter (vector-level filter)
+    # 2. we want to ensure at least top_k chunks *from that specific video*
+    search_k = top_k * 4 if video_id else top_k
+    search_k = min(search_k, index.ntotal)
+
+    scores, indices = index.search(query_array, search_k)
+
+    results = []
+    for score, idx in zip(scores[0], indices[0]):
+        if idx == -1:
+            continue
+        chunk = metadata[idx]
+
+        if video_id and chunk.get("video_id") != video_id:
+            continue
+
+        chunk_with_score = {**chunk, "score": float(score)}
+        results.append(chunk_with_score)
+
+        if len(results) >= top_k:
+            break
+
+    return results
 
 
-#load the save embeddings dataframe
-df = joblib.load("data/embeddings/embeddings.pkl")
-
-def retrieve(incoming_query, top_k = 5):
-    # create embedding for the query
-    question_embedding = create_embedding([incoming_query])[0]
-
-    # cosine similarity between query
-    similarity = cosine_similarity(np.vstack(df['embedding']), [question_embedding]).flatten()
-    
-    top_indices = similarity.argsort()[-top_k:][::-1]
-
-    
-    return df.iloc[top_indices]
-
-print("Retreived successfully")
+print("FAISS retrieval module loaded successfully")
