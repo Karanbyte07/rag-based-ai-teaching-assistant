@@ -1,7 +1,8 @@
-from ingestion.youtube_ingest import download_audio
-from ingestion.transcribe import transcribe_audio
+import sys
+from ingestion.youtube_ingest import download_audio, transcribe_audio
 from preprocessing.chunking import chunk_segments
-from embeddings.generate_embeddings import embed_and_store
+from embeddings.faiss_store import embed_and_store
+
 
 def ingest_video(video_url: str) -> dict:
     print(f"Downloading: {video_url}")
@@ -21,12 +22,14 @@ def ingest_video(video_url: str) -> dict:
         "title": meta["title"],
         "num_chunks": len(chunks),
         "status": "completed",
-        "segments": segments,
-        "chunks": chunks,
     }
 
 
 if __name__ == "__main__":
-    url = input("Paste a short YouTube video URL to test: ")
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+    else:
+        url = input("Paste a YouTube video URL: ")
+
     result = ingest_video(url)
     print(result)
