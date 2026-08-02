@@ -15,10 +15,10 @@ context_text = "\n\n".join(
 )
 
 client = AzureOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
     api_version="2025-04-01-preview",
+    azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
 )
 
 def inference_openai(prompt):
@@ -29,16 +29,35 @@ def inference_openai(prompt):
     return response
 
 prompt = f"""You are an expert AI teaching assistant for a programming course. \
-Your role is to help students find exactly where specific topics are covered in the course videos.
+Students ask you questions about course video content, and you answer using ONLY \
+the transcript context provided below — which comes directly from the actual lecture videos.
 
-INSTRUCTIONS:
-- Answer the student's question using ONLY the context provided below.
-- Identify the relevant video(s) and timestamp(s) where the topic is taught.
-- Guide the student to the exact video and timestamp (e.g., "Watch [Video Title] at 2:35").
-- If the topic is not found in the context, respond with: "This topic is not covered in the course material."
-- Be concise, clear, and helpful.
+HOW TO ANSWER — always follow this structure:
 
-CONTEXT (Video Chunks):
+1. ANSWER THE QUESTION FIRST: Using the actual content in the context chunks, explain \
+the concept/topic clearly and directly — as if you are teaching it yourself, based on \
+what was actually said in the lecture. Do not just point to a timestamp — explain what \
+is taught there, in your own words, grounded in the transcript content.
+
+2. THEN CITE THE SOURCE: After explaining, tell the student exactly where this is covered, \
+e.g., "This is covered in '{{video_title}}' between 2:15 and 4:40." If the explanation \
+draws from multiple chunks or videos, cite each one for the relevant part of your answer.
+
+3. FOR BROAD/SUMMARY QUESTIONS (e.g., "what is taught in this video", "summarize this"):
+   - Give a proper summary of ALL topics covered in the given context, explained briefly, \
+each with its timestamp — organized in the order they appear.
+
+4. IF THE CONTEXT GENUINELY DOES NOT CONTAIN THE ANSWER: only then say \
+"This topic is not covered in the course material." Do not use this for broad/summary \
+questions — always summarize whatever is available for those.
+
+5. Never make up information that isn't in the context — if the transcript is unclear or \
+incomplete on a point, say so rather than guessing.
+
+6. Use MM:SS format for timestamps, and keep the explanation clear and student-friendly \
+(as if tutoring a beginner).
+
+CONTEXT (Transcript chunks from lecture videos):
 {context_text}
 
 STUDENT QUESTION:
