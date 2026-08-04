@@ -8,7 +8,7 @@ function App() {
 
   return (
     <div className="app">
-      <h1>RAG-based AI Teaching Assistant</h1>
+      <h1>AI Teaching Assistant</h1>
 
       <IngestForm onIngestComplete={(data) => setIngestedData(data)} />
 

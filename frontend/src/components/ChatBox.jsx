@@ -26,7 +26,7 @@ function ChatBox() {
     }
   };
 
-  // Seconds ko MM:SS format mein convert karta hai — YouTube link aur display dono ke liye
+  // it converts seconds into minutes and seconds format for the youtube link and display
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
