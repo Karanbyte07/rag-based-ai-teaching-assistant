@@ -1,4 +1,5 @@
-from ingestion.youtube_ingest import download_audio, transcribe_audio
+from ingestion.youtube_ingest import download_audio
+from ingestion.transcribe import transcribe_audio
 from preprocessing.chunking import chunk_segments  
 from embeddings.faiss_store import embed_and_store
 
