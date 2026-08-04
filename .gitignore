@@ -1,3 +1,5 @@
+# Backend
+
 # Python cache and bytecode
 __pycache__/
 *.pyc
@@ -10,10 +12,29 @@ env/
 # Editor temp files
 tempCodeRunnerFile.py
 
-# Logs
+# Logs and generated data (keep folder structure, ignore content)
 data/
+backend/data/*
+!backend/data/README.md
+!backend/data/**/.gitkeep
+
+# FAISS index and model cache
+*.faiss
+*.pkl
 
 # Environment variables
 .env
 
+# VS Code settings
 .vscode/
+
+# Frontend
+frontend/node_modules
+frontend/dist
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
