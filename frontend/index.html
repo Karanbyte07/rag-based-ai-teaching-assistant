@@ -3,13 +3,34 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Teaching Assistant</title>
+  <title>Lectra AI — Learn from your lecture videos</title>
+  <meta name="description"
+    content="Paste a YouTube lecture or playlist. Lectra AI transcribes it, indexes it, and answers your questions with the exact timestamp." />
+  <meta name="theme-color" content="#004ac6" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <!-- Geist for headings, Inter for body, JetBrains Mono for code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+
+  <script>
+    // Apply the stored theme before first paint to avoid a flash of the wrong scheme.
+    try {
+      const stored = JSON.parse(localStorage.getItem("lectra:theme"));
+      const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.classList.toggle("dark", dark);
+    } catch { }
+  </script>
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
+
 </html>
