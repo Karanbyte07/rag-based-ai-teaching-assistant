@@ -30,7 +30,7 @@ class ChatResponse(BaseModel):
 
 
 def build_prompt(question: str, context_text: str) -> str:
-    return f"""You are an expert AI teaching assistant for a programming course. \
+    return f"""You are an expert AI teaching assistant. \
 Students ask you questions about course video content, and you answer using ONLY \
 the transcript context provided below — which comes directly from the actual lecture videos.
 
