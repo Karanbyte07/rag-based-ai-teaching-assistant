@@ -1,27 +1,30 @@
-import { useState } from "react";
-import IngestForm from "./components/IngestForm";
-import ChatBox from "./components/ChatBox";
-import "./App.css";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AppProvider } from "./context/AppContext";
+import RootLayout from "./components/layout/RootLayout";
+import HomePage from "./pages/HomePage";
+import LecturesPage from "./pages/LecturesPage";
+import ProcessingPage from "./pages/ProcessingPage";
+import ChatPage from "./pages/ChatPage";
+import SettingsPage from "./pages/SettingsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
-function App() {
-  const [ingestedData, setIngestedData] = useState(null);
-
+export default function App() {
   return (
-    <div className="app">
-      <h1>AI Teaching Assistant</h1>
-
-      <IngestForm onIngestComplete={(data) => setIngestedData(data)} />
-
-      {ingestedData && (
-        <div className="chat-section">
-          <p className="success-message">
-            Ingestion complete! You can now ask questions.
-          </p>
-          <ChatBox />
-        </div>
-      )}
-    </div>
+    <AppProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<RootLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="lectures" element={<LecturesPage />} />
+            <Route path="processing/:jobId" element={<ProcessingPage />} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            {/* Legacy path from the first prototype. */}
+            <Route path="jobs" element={<Navigate to="/lectures" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AppProvider>
   );
 }
-
-export default App;

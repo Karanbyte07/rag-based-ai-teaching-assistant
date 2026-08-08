@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light scheme — exact values from the Stitch design. */
+  :root {
+    --primary: 0 74 198;
+    --on-primary: 255 255 255;
+    --primary-container: 37 99 235;
+    --on-primary-container: 238 239 255;
+    --primary-fixed: 219 225 255;
+    --primary-fixed-dim: 180 197 255;
+    --on-primary-fixed: 0 23 75;
+    --on-primary-fixed-variant: 0 62 168;
+
+    --secondary: 0 88 190;
+    --on-secondary: 255 255 255;
+    --secondary-container: 33 112 228;
+    --on-secondary-container: 254 252 255;
+    --secondary-fixed: 216 226 255;
+    --secondary-fixed-dim: 173 198 255;
+    --on-secondary-fixed: 0 26 66;
+    --on-secondary-fixed-variant: 0 67 149;
+
+    --tertiary: 0 98 66;
+    --on-tertiary: 255 255 255;
+    --tertiary-container: 0 125 85;
+    --on-tertiary-container: 189 255 219;
+    --tertiary-fixed: 111 251 190;
+    --tertiary-fixed-dim: 78 222 163;
+    --on-tertiary-fixed: 0 33 19;
+    --on-tertiary-fixed-variant: 0 82 54;
+
+    --error: 186 26 26;
+    --on-error: 255 255 255;
+    --error-container: 255 218 214;
+    --on-error-container: 147 0 10;
+
+    --background: 248 249 255;
+    --on-background: 13 28 46;
+    --surface: 248 249 255;
+    --on-surface: 13 28 46;
+    --surface-variant: 213 227 252;
+    --on-surface-variant: 67 70 85;
+    --surface-bright: 248 249 255;
+    --surface-dim: 204 219 243;
+    --surface-tint: 0 83 219;
+    --surface-container-lowest: 255 255 255;
+    --surface-container-low: 239 244 255;
+    --surface-container: 230 238 255;
+    --surface-container-high: 220 233 255;
+    --surface-container-highest: 213 227 252;
+
+    --outline: 115 118 134;
+    --outline-variant: 195 198 215;
+    --inverse-surface: 35 49 68;
+    --inverse-on-surface: 234 241 255;
+    --inverse-primary: 180 197 255;
+
+    --glass: 255 255 255;
+  }
+
+  /* Dark scheme — same seed hue, M3 dark roles. */
+  .dark {
+    --primary: 180 197 255;
+    --on-primary: 0 46 106;
+    --primary-container: 0 62 168;
+    --on-primary-container: 219 225 255;
+
+    --secondary: 173 198 255;
+    --on-secondary: 0 47 107;
+    --secondary-container: 0 67 149;
+    --on-secondary-container: 216 226 255;
+
+    --tertiary: 78 222 163;
+    --on-tertiary: 0 33 19;
+    --tertiary-container: 0 82 54;
+    --on-tertiary-container: 111 251 190;
+
+    --error: 255 180 171;
+    --on-error: 105 0 5;
+    --error-container: 147 0 10;
+    --on-error-container: 255 218 214;
+
+    --background: 13 28 46;
+    --on-background: 234 241 255;
+    --surface: 13 28 46;
+    --on-surface: 234 241 255;
+    --surface-variant: 67 70 85;
+    --on-surface-variant: 195 198 215;
+    --surface-bright: 51 64 90;
+    --surface-dim: 13 28 46;
+    --surface-tint: 180 197 255;
+    --surface-container-lowest: 8 19 31;
+    --surface-container-low: 21 32 52;
+    --surface-container: 25 37 60;
+    --surface-container-high: 35 49 68;
+    --surface-container-highest: 46 60 82;
+
+    --outline: 141 144 160;
+    --outline-variant: 67 70 85;
+    --inverse-surface: 234 241 255;
+    --inverse-on-surface: 13 28 46;
+    --inverse-primary: 0 74 198;
+
+    --glass: 13 28 46;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-on-background font-body-md text-body-md antialiased;
+  }
+
+  /* Material Symbols default axis settings. */
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+    user-select: none;
+  }
+
+  .material-symbols-outlined.filled {
+    font-variation-settings: "FILL" 1;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-outline-variant rounded-full;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+}
+
+@layer components {
+  /* Elevation + glass treatments used across the mockups. */
+  .shadow-level-1 {
+    box-shadow: 0 1px 3px 0 rgb(15 23 42 / 0.05), 0 1px 2px -1px rgb(15 23 42 / 0.1);
+  }
+
+  .glass-panel {
+    background: rgb(var(--glass) / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .sparkle-bg {
+    background-image: radial-gradient(circle at center, rgb(var(--primary) / 0.05) 0%, transparent 70%);
+  }
+
+  /* Range inputs on the Settings screen. */
+  .range-input {
+    @apply w-full appearance-none bg-transparent cursor-pointer;
+  }
+
+  .range-input::-webkit-slider-runnable-track {
+    @apply h-1 rounded-full bg-outline-variant;
+  }
+
+  .range-input::-webkit-slider-thumb {
+    @apply appearance-none h-4 w-4 rounded-full bg-primary;
+    margin-top: -6px;
+  }
+
+  .range-input::-moz-range-track {
+    @apply h-1 rounded-full bg-outline-variant;
+  }
+
+  .range-input::-moz-range-thumb {
+    @apply h-4 w-4 rounded-full bg-primary border-0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
