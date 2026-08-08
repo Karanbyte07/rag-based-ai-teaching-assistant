@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-# pyrefly: ignore [missing-import]
 from sentence_transformers import SentenceTransformer
 
 # Load environment variables from .env file
