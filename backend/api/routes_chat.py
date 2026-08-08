@@ -1,5 +1,3 @@
-# api/routes_chat.py
-
 from fastapi import APIRouter
 from pydantic import BaseModel
 from openai import AzureOpenAI

@@ -1,5 +1,3 @@
-# api/routes_jobs.py
-
 from fastapi import APIRouter, HTTPException
 from api.job_store import get_job, jobs
 

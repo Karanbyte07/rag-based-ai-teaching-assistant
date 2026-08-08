@@ -1,5 +1,3 @@
-# api/job_store.py
-
 import uuid
 from datetime import datetime
 
