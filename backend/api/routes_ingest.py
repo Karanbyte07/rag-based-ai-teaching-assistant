@@ -21,7 +21,7 @@ class PlaylistIngestRequest(BaseModel):
 def _run_video_ingestion(job_id: str, url: str):
     """Background mein chalne wala actual ingestion task — single video."""
     try:
-        result = ingest_video(url)
+        result = ingest_video(url, job_id=job_id)
         update_job(job_id, status="completed", result=result)
     except Exception as e:
         update_job(job_id, status="failed", error=str(e))
