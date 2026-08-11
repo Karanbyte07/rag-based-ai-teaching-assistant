@@ -9,7 +9,7 @@ export function Footer() {
         <Logo size={24} />
 
         <p className="font-label-sm text-label-sm uppercase tracking-wider text-secondary text-center opacity-80">
-          © {YEAR} Lectra AI · React • FastAPI • Whisper • FAISS
+          © {YEAR} Lectra AI . All rights reserved
         </p>
 
         <nav className="flex gap-lg">
