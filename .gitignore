@@ -17,7 +17,6 @@ data/
 backend/data/*
 !backend/data/README.md
 !backend/data/**/.gitkeep
-# cookies.txt is intentionally excluded — it contains private YouTube session tokens
 
 # FAISS index and model cache
 *.faiss
