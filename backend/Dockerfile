@@ -4,12 +4,20 @@ FROM python:3.11-slim
 # ── Install system dependencies ──────────────────────────────
 # ffmpeg  → required by faster-whisper for audio processing
 # libgomp → required by faiss-cpu (OpenMP)
+# build tools
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     libgomp1 \
     build-essential \
+    curl \
+    unzip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# install deno for the yt-dlp
+RUN curl -fsSL https://deno.land/install.sh | sh
+ENV DENO_INSTALL="/root/.deno"
+ENV PATH="$DENO_INSTALL/bin:$PATH"
 
 # ── Set working directory ─────────────────────────────────────
 WORKDIR /app
