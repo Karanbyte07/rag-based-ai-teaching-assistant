@@ -5,7 +5,7 @@ scikit-learn
 numpy
 pandas
 joblib
-yt-dlp
+yt-dlp>=2025.7.21
 faster-whisper
 faiss-cpu
 fastapi
