@@ -1,19 +1,20 @@
-import os
-from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Load model and it cacheds locally
 MODEL_NAME = "all-MiniLM-L6-v2"
-model = SentenceTransformer(MODEL_NAME)
+BATCH_SIZE = 16
 
-# Process texts in batches to avoid memory spikes on large corpora
-BATCH_SIZE = 64
+_model = None
 
 
-def create_embedding(texts):
+def _get_model() -> SentenceTransformer:
+    global _model
+    if _model is None:
+        _model = SentenceTransformer(MODEL_NAME)
+    return _model
+
+
+def create_embedding(texts: list[str]) -> list[list[float]]:
+    model = _get_model()
     all_embeddings = []
 
     for i in range(0, len(texts), BATCH_SIZE):
@@ -22,9 +23,3 @@ def create_embedding(texts):
         all_embeddings.extend(batch_embeddings.tolist())
 
     return all_embeddings
-
-
-
-# texts = ["tell me about the taj mahal", "how are you doing?"]
-# result = create_embedding(texts)
-# print("Embedding shape:", len(result[0]))  # should print 384
