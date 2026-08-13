@@ -16,6 +16,9 @@ def download_audio(video_url: str) -> dict:
         }],
         "quiet": True,
         "noplaylist": True,   # yeh line add karo
+        "extractor_args": {
+            "youtube": ["player_client=android"]
+        },
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -35,6 +38,9 @@ def extract_playlist_urls(playlist_url: str) -> list[str]:
     ydl_opts = {
         "extract_flat": True,   #only extract metadata, not download
         "quiet": True,          
+        "extractor_args": {
+            "youtube": ["player_client=android"]
+        },
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
