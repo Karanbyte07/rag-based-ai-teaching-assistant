@@ -1,6 +1,8 @@
 import json
 import os
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+
+from embeddings.faiss_store import delete_video_data
 
 router = APIRouter()
 
@@ -47,3 +49,17 @@ def _read_lectures() -> list[dict]:
 def list_lectures():
     """Return every unique video that has been ingested and stored in FAISS."""
     return _read_lectures()
+
+
+@router.delete("/lectures/{video_id}")
+def delete_lecture(video_id: str):
+    """
+    Delete a lecture and all its associated data:
+    FAISS vectors, metadata entries, audio files, and chunk JSON files.
+    """
+    result = delete_video_data(video_id)
+
+    if result["removed_chunks"] == 0:
+        raise HTTPException(status_code=404, detail=f"Video '{video_id}' not found in index")
+
+    return result

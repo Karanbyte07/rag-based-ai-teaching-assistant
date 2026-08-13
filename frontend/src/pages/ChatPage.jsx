@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import ChatSidebar from "../features/chat/ChatSidebar";
 import Composer from "../features/chat/Composer";
 import { AssistantMessage, UserMessage } from "../features/chat/Message";
@@ -17,6 +17,8 @@ const SUGGESTIONS = [
 export function ChatPage() {
   const { settings } = useApp();
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { lectures } = useLectures();
 
   const videoId = params.get("video");
@@ -29,6 +31,17 @@ export function ChatPage() {
   const chat = useChat({ topK: settings.topK, videoId });
   const scrollRef = useRef(null);
 
+  // Automatically start a new session if navigated here with startNewSession flag
+  useEffect(() => {
+    if (location.state?.startNewSession) {
+      if (chat.messages.length > 0) {
+        chat.startSession();
+      }
+      // Clear the state so refreshing doesn't keep triggering this
+      navigate(location.pathname + location.search, { replace: true, state: {} });
+    }
+  }, [location, chat, navigate]);
+
   // Keep the newest message in view as the transcript grows.
   useEffect(() => {
     const el = scrollRef.current;
@@ -38,7 +51,10 @@ export function ChatPage() {
   const isEmpty = chat.messages.length === 0;
 
   const handleSelectLecture = (lecture) => {
-    setParams({ video: lecture.video_id }, { replace: true });
+    navigate(`/chat?video=${encodeURIComponent(lecture.video_id)}`, {
+      replace: true,
+      state: { startNewSession: true },
+    });
   };
 
   const handleClearScope = () => {
