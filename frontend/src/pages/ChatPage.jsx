@@ -6,8 +6,7 @@ import { AssistantMessage, UserMessage } from "../features/chat/Message";
 import Icon from "../components/ui/Icon";
 import { useApp } from "../hooks/useApp";
 import { useChat } from "../hooks/useChat";
-import { useJobs } from "../hooks/useJobs";
-import { jobTitle } from "../lib/format";
+import { useLectures } from "../hooks/useLectures";
 
 const SUGGESTIONS = [
   "Summarize everything covered in this lecture.",
@@ -18,14 +17,14 @@ const SUGGESTIONS = [
 export function ChatPage() {
   const { settings } = useApp();
   const [params, setParams] = useSearchParams();
-  const { completed } = useJobs();
+  const { lectures } = useLectures();
 
   const videoId = params.get("video");
   const scope = useMemo(() => {
     if (!videoId) return null;
-    const job = completed.find((j) => j.result?.video_id === videoId);
-    return { videoId, title: job ? jobTitle(job) : videoId };
-  }, [videoId, completed]);
+    const lecture = lectures.find((l) => l.video_id === videoId);
+    return { videoId, title: lecture ? lecture.title : videoId };
+  }, [videoId, lectures]);
 
   const chat = useChat({ topK: settings.topK, videoId });
   const scrollRef = useRef(null);
@@ -37,6 +36,14 @@ export function ChatPage() {
   }, [chat.messages]);
 
   const isEmpty = chat.messages.length === 0;
+
+  const handleSelectLecture = (lecture) => {
+    setParams({ video: lecture.video_id }, { replace: true });
+  };
+
+  const handleClearScope = () => {
+    setParams({}, { replace: true });
+  };
 
   return (
     <div className="flex flex-1 w-full min-h-0">
@@ -78,7 +85,7 @@ export function ChatPage() {
                   ))}
                 </div>
 
-                {completed.length === 0 && (
+                {lectures.length === 0 && (
                   <p className="mt-xl font-body-sm text-body-sm text-on-surface-variant">
                     No lectures indexed yet —{" "}
                     <Link to="/" className="text-primary">
@@ -111,7 +118,9 @@ export function ChatPage() {
           onStop={chat.stop}
           pending={chat.pending}
           scope={scope}
-          onClearScope={() => setParams({}, { replace: true })}
+          onClearScope={handleClearScope}
+          lectures={lectures}
+          onSelectLecture={handleSelectLecture}
         />
       </section>
     </div>

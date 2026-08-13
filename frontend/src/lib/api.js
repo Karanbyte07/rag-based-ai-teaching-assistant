@@ -47,5 +47,8 @@ export const askQuestion = ({ question, videoId = null, topK = 5, signal }) =>
     signal,
   });
 
+/** List all lectures that have been ingested and stored in FAISS. */
+export const listLectures = (signal) => request("/lectures", { signal });
+
 /** Connectivity probe for the backend status indicator. */
 export const ping = (signal) => request("/", { signal });
