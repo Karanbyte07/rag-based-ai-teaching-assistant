@@ -4,20 +4,39 @@ from openai import AzureOpenAI
 from dotenv import load_dotenv
 import os
 
+import google.generativeai as genai
+
 from rag.retrieve import retrieve
 
 load_dotenv()
 
 router = APIRouter()
 
-client = AzureOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
-    api_version="2025-04-01-preview",
-)
+# ── Provider selection ──────────────────────────────────────────────────────
+# Set LLM_PROVIDER=gemini  to use Google Gemini
+# Set LLM_PROVIDER=azure   (or leave unset) to use Azure OpenAI
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "azure").lower()
+
+# ── Azure OpenAI client (only initialised when needed) ─────────────────────
+azure_client = None
+if LLM_PROVIDER == "azure":
+    azure_client = AzureOpenAI(
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+        api_version="2025-04-01-preview",
+    )
+
+# ── Gemini client (only initialised when needed) ───────────────────────────
+gemini_model = None
+if LLM_PROVIDER == "gemini":
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    gemini_model = genai.GenerativeModel(
+        model_name=os.getenv("GEMINI_MODEL_NAME", "gemini-2.0-flash")
+    )
 
 
+# ── Pydantic schemas ────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
     question: str
     video_id: str | None = None
@@ -29,6 +48,7 @@ class ChatResponse(BaseModel):
     sources: list[dict]
 
 
+# ── Prompt builder ──────────────────────────────────────────────────────────
 def build_prompt(question: str, context_text: str) -> str:
     return f"""You are an expert AI teaching assistant. \
 Students ask you questions about course video content, and you answer using ONLY \
@@ -61,6 +81,21 @@ STUDENT QUESTION:
 """
 
 
+# ── LLM call helper ─────────────────────────────────────────────────────────
+def call_llm(prompt: str) -> str:
+    if LLM_PROVIDER == "gemini":
+        response = gemini_model.generate_content(prompt)
+        return response.text
+    else:
+        # Azure OpenAI
+        response = azure_client.chat.completions.create(
+            model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.choices[0].message.content
+
+
+# ── Route ───────────────────────────────────────────────────────────────────
 @router.post("/chat", response_model=ChatResponse)
 def chat_endpoint(payload: ChatRequest):
     results = retrieve(payload.question, top_k=payload.top_k, video_id=payload.video_id)
@@ -77,13 +112,7 @@ def chat_endpoint(payload: ChatRequest):
     )
 
     prompt = build_prompt(payload.question, context_text)
-
-    response = client.chat.completions.create(
-        model=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    answer = response.choices[0].message.content
+    answer = call_llm(prompt)
 
     sources = [
         {
