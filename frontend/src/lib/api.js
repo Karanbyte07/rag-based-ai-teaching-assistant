@@ -47,5 +47,12 @@ export const askQuestion = ({ question, videoId = null, topK = 5, signal }) =>
     signal,
   });
 
+/** List all lectures that have been ingested and stored in FAISS. */
+export const listLectures = (signal) => request("/lectures", { signal });
+
+/** Delete a lecture and all its associated data (FAISS, audio, chunks). */
+export const deleteLecture = (videoId) =>
+  request(`/lectures/${encodeURIComponent(videoId)}`, { method: "DELETE" });
+
 /** Connectivity probe for the backend status indicator. */
 export const ping = (signal) => request("/", { signal });

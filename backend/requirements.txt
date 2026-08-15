@@ -5,8 +5,10 @@ scikit-learn
 numpy
 pandas
 joblib
-yt-dlp
 faster-whisper
 faiss-cpu
 fastapi
 uvicorn[standard]
+requests
+pytubefix
+google-generativeai

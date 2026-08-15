@@ -2,13 +2,13 @@ import { Link } from "react-router-dom";
 import LectureCard from "../lectures/LectureCard";
 import Icon from "../../components/ui/Icon";
 import { Alert, EmptyState, Spinner } from "../../components/ui/Feedback";
-import { useJobs } from "../../hooks/useJobs";
+import { useLectures } from "../../hooks/useLectures";
 
 const MAX_CARDS = 3;
 
 export function RecentLectures() {
-  const { jobs, error, loading } = useJobs();
-  const recent = jobs.slice(0, MAX_CARDS);
+  const { lectures, error, loading } = useLectures();
+  const recent = lectures.slice(0, MAX_CARDS);
 
   return (
     <section className="py-xl px-lg w-full max-w-container-max mx-auto border-t border-outline-variant/20">
@@ -19,7 +19,7 @@ export function RecentLectures() {
             Jump back into your processed videos
           </p>
         </div>
-        {jobs.length > MAX_CARDS && (
+        {lectures.length > MAX_CARDS && (
           <Link
             to="/lectures"
             className="hidden sm:flex text-primary font-label-md text-label-md items-center gap-xs hover:text-primary/80 no-underline"
@@ -51,8 +51,8 @@ export function RecentLectures() {
 
       {recent.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-lg">
-          {recent.map((job) => (
-            <LectureCard key={job.job_id} job={job} />
+          {recent.map((lecture) => (
+            <LectureCard key={lecture.video_id} lecture={lecture} />
           ))}
         </div>
       )}

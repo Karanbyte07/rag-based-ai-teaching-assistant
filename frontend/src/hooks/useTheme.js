@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { readStore, writeStore, STORAGE_KEYS } from "../lib/storage";
 
-// Falls back to the OS preference the first time, then remembers the choice.
+// Falls back to light mode the first time, then remembers the user's choice.
 const initialTheme = () =>
-  readStore(STORAGE_KEYS.theme, null) ??
-  (window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  readStore(STORAGE_KEYS.theme, null) ?? "light";
 
 /** Drives the `dark` class on <html>, which flips the CSS variable scheme. */
 export function useTheme() {
