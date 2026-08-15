@@ -6,6 +6,13 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Proxy all /api/* calls to the backend (avoids mixed-content HTTPS→HTTP issue)
+[[redirects]]
+  from   = "/api/*"
+  to     = "http://72.62.72.185:8000/:splat"
+  status = 200
+  force  = true
+
 # SPA fallback — send all routes to index.html
 [[redirects]]
   from   = "/*"
