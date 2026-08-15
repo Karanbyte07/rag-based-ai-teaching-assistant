@@ -2,6 +2,7 @@ import os
 import yt_dlp
 
 AUDIO_DIR = "data/audios"
+COOKIES_PATH = os.getenv("YTDLP_COOKIES_PATH", "data/cookies.txt")
 
 # URL of the bgutil PO token provider server.
 # In Docker Compose this is set to http://bgutil:4416 via env var.
@@ -23,6 +24,14 @@ def _pot_extractor_args() -> dict:
     }
 
 
+def _cookies_opt() -> dict:
+    """Return cookiefile option if cookies.txt exists, else empty dict."""
+    if os.path.isfile(COOKIES_PATH):
+        print(f"Using cookies from {COOKIES_PATH}")
+        return {"cookiefile": COOKIES_PATH}
+    return {}
+
+
 def download_audio(video_url: str) -> dict:
     os.makedirs(AUDIO_DIR, exist_ok=True)
 
@@ -35,6 +44,7 @@ def download_audio(video_url: str) -> dict:
         "no_warnings": True,
         # Avoid postprocessing so we keep the raw audio file
         "postprocessors": [],
+        **_cookies_opt(),
         **_pot_extractor_args(),
     }
 
@@ -63,6 +73,7 @@ def extract_playlist_urls(playlist_url: str) -> list[str]:
         "no_warnings": True,
         "extract_flat": True,   # don't download, just list entries
         "skip_download": True,
+        **_cookies_opt(),
         **_pot_extractor_args(),
     }
 
