@@ -4,7 +4,7 @@ from openai import AzureOpenAI
 from dotenv import load_dotenv
 import os
 
-import google.generativeai as genai
+from google import genai
 
 from rag.retrieve import retrieve
 
@@ -28,12 +28,9 @@ if LLM_PROVIDER == "azure":
     )
 
 # ── Gemini client (only initialised when needed) ───────────────────────────
-gemini_model = None
+gemini_client = None
 if LLM_PROVIDER == "gemini":
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    gemini_model = genai.GenerativeModel(
-        model_name=os.getenv("GEMINI_MODEL_NAME", "gemini-2.0-flash")
-    )
+    gemini_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 # ── Pydantic schemas ────────────────────────────────────────────────────────
@@ -84,7 +81,11 @@ STUDENT QUESTION:
 # ── LLM call helper ─────────────────────────────────────────────────────────
 def call_llm(prompt: str) -> str:
     if LLM_PROVIDER == "gemini":
-        response = gemini_model.generate_content(prompt)
+        model_name = os.getenv("GEMINI_MODEL_NAME", "gemini-2.0-flash")
+        response = gemini_client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+        )
         return response.text
     else:
         # Azure OpenAI

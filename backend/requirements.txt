@@ -11,4 +11,4 @@ fastapi
 uvicorn[standard]
 requests
 pytubefix
-google-generativeai
+google-genai
