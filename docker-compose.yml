@@ -11,11 +11,6 @@ services:
     restart: unless-stopped
     ports:
       - "4416:4416"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4416/"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # ── FastAPI Backend ───────────────────────────────────────────────────────────
   backend:
@@ -36,5 +31,4 @@ services:
       - ./backend/data:/app/data
       - ./backend/embeddings:/app/embeddings
     depends_on:
-      bgutil:
-        condition: service_healthy
+      - bgutil
