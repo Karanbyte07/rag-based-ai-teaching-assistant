@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+
+  # ── YouTube PO Token Provider ─────────────────────────────────────────────────
+  # Generates fresh Proof-of-Origin tokens so yt-dlp is never detected as a bot.
+  # Runs on port 4416 internally; the backend calls it via http://bgutil:4416
+  bgutil:
+    image: brainicism/bgutil-ytdlp-pot-provider:latest
+    container_name: bgutil-pot-provider
+    restart: unless-stopped
+    ports:
+      - "4416:4416"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4416/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI Backend ───────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rag-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Tell the bgutil yt-dlp plugin where the token server is
+      BGUTIL_HTTP_BASE_URL: "http://bgutil:4416"
+    volumes:
+      # Persist FAISS index and downloaded audio across container restarts
+      - ./backend/data:/app/data
+      - ./backend/embeddings:/app/embeddings
+    depends_on:
+      bgutil:
+        condition: service_healthy

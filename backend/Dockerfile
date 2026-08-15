@@ -14,11 +14,6 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# install deno for the yt-dlp
-RUN curl -fsSL https://deno.land/install.sh | sh
-ENV DENO_INSTALL="/root/.deno"
-ENV PATH="$DENO_INSTALL/bin:$PATH"
-
 # ── Set working directory ─────────────────────────────────────
 WORKDIR /app
 
@@ -30,7 +25,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ── Copy the rest of the backend source code ─────────────────
 COPY . .
 
-# ── Expose port (Railway injects $PORT at runtime) ───────────
+# ── Expose port ──────────────────────────────────────────────
 EXPOSE 8000
 
 # ── Start the FastAPI server ──────────────────────────────────

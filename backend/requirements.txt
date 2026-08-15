@@ -11,4 +11,5 @@ fastapi
 uvicorn[standard]
 requests
 yt-dlp
-google-genai
+bgutil-ytdlp-pot-provider
+google-genai

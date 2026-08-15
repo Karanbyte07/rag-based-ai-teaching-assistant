@@ -3,6 +3,25 @@ import yt_dlp
 
 AUDIO_DIR = "data/audios"
 
+# URL of the bgutil PO token provider server.
+# In Docker Compose this is set to http://bgutil:4416 via env var.
+# Falls back to localhost for local development.
+_BGUTIL_URL = os.getenv("BGUTIL_HTTP_BASE_URL", "http://localhost:4416")
+
+
+def _pot_extractor_args() -> dict:
+    """
+    Returns the extractor_args needed to route yt-dlp's PO token
+    requests to the bgutil HTTP provider server.
+    """
+    return {
+        "extractor_args": {
+            "youtubepot-bgutilhttp": {
+                "base_url": [_BGUTIL_URL],
+            },
+        },
+    }
+
 
 def download_audio(video_url: str) -> dict:
     os.makedirs(AUDIO_DIR, exist_ok=True)
@@ -16,6 +35,7 @@ def download_audio(video_url: str) -> dict:
         "no_warnings": True,
         # Avoid postprocessing so we keep the raw audio file
         "postprocessors": [],
+        **_pot_extractor_args(),
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -43,6 +63,7 @@ def extract_playlist_urls(playlist_url: str) -> list[str]:
         "no_warnings": True,
         "extract_flat": True,   # don't download, just list entries
         "skip_download": True,
+        **_pot_extractor_args(),
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -54,3 +75,4 @@ def extract_playlist_urls(playlist_url: str) -> list[str]:
         for entry in entries
         if entry.get("id")
     ]
+
