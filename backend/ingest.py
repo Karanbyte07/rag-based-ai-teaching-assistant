@@ -1,3 +1,4 @@
+import sys
 from ingestion.transcript_fetcher import fetch_youtube_transcript
 from ingestion.youtube_ingest import download_audio
 from ingestion.transcribe import transcribe_audio
