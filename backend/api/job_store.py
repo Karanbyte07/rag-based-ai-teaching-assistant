@@ -19,6 +19,7 @@ def create_job(job_type: str, meta: dict = None) -> str:
         "meta": meta or {},
         "result": None,
         "error": None,
+        "error_code": None,       # e.g. "BOT_DETECTION"
     }
     return job_id
 

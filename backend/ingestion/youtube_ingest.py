@@ -4,6 +4,12 @@ import yt_dlp
 AUDIO_DIR = "data/audios"
 COOKIES_PATH = os.getenv("YTDLP_COOKIES_PATH", "data/cookies.txt")
 
+
+class BotDetectionError(Exception):
+    """Raised when YouTube blocks the request with bot detection."""
+    pass
+
+
 # URL of the bgutil PO token provider server.
 # In Docker Compose this is set to http://bgutil:4416 via env var.
 # Falls back to localhost for local development.
@@ -48,8 +54,17 @@ def download_audio(video_url: str) -> dict:
         **_pot_extractor_args(),
     }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(video_url, download=True)
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=True)
+    except yt_dlp.utils.DownloadError as e:
+        msg = str(e).lower()
+        if "sign in" in msg or "bot" in msg or "confirm your age" in msg or "private video" in msg:
+            raise BotDetectionError(
+                "YouTube blocked this request (bot detection). "
+                "Please upload fresh cookies to fix this."
+            ) from e
+        raise
 
     video_id = info["id"]
     ext = info.get("ext", "m4a")

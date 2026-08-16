@@ -10,6 +10,7 @@ faiss-cpu
 fastapi
 uvicorn[standard]
 requests
+python-multipart
 yt-dlp
 bgutil-ytdlp-pot-provider
-google-genai
+google-genai

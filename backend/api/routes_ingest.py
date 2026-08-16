@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ingest import ingest_video
-from ingestion.youtube_ingest import extract_playlist_urls
+from ingestion.youtube_ingest import extract_playlist_urls, BotDetectionError
 from api.job_store import create_job, update_job, update_playlist_progress
 
 router = APIRouter()
@@ -23,6 +23,8 @@ def _run_video_ingestion(job_id: str, url: str):
     try:
         result = ingest_video(url, job_id=job_id)
         update_job(job_id, status="completed", result=result)
+    except BotDetectionError as e:
+        update_job(job_id, status="failed", error=str(e), error_code="BOT_DETECTION")
     except Exception as e:
         update_job(job_id, status="failed", error=str(e))
 

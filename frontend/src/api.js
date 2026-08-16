@@ -35,3 +35,17 @@ export async function askQuestion(question, videoId = null, topK = 5) {
   if (!res.ok) throw new Error("Failed to get chat response");
   return res.json();
 }
+
+export async function uploadCookies(file) {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${BASE_URL}/cookies/update`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || "Failed to upload cookies");
+  }
+  return res.json();
+}
