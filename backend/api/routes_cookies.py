@@ -4,7 +4,10 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/cookies", tags=["cookies"])
 
-COOKIES_PATH = "data/cookies.txt"
+COOKIES_PATH = os.path.abspath("data/cookies.txt")
+
+print(f"[routes_cookies] COOKIES_PATH -> {COOKIES_PATH}")
+
 
 
 @router.post("/update", summary="Upload a new cookies.txt to replace the existing one")

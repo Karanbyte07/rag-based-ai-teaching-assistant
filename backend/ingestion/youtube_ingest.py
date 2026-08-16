@@ -1,8 +1,15 @@
 import os
 import yt_dlp
 
-AUDIO_DIR = "data/audios"
-COOKIES_PATH = os.getenv("YTDLP_COOKIES_PATH", "data/cookies.txt")
+# Relative paths work in both environments:
+#   Docker  → WORKDIR /app  → resolves to /app/data/...
+#   Local   → run from backend/ → resolves to backend/data/...
+AUDIO_DIR = os.path.abspath("data/audios")
+COOKIES_PATH = os.path.abspath("data/cookies.txt")
+
+print(f"[youtube_ingest] AUDIO_DIR   -> {AUDIO_DIR}")
+print(f"[youtube_ingest] COOKIES_PATH -> {COOKIES_PATH}")
+
 
 
 class BotDetectionError(Exception):
