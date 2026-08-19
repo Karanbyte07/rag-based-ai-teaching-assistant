@@ -13,7 +13,7 @@ services:
       - ../envs/rag.backend.prod.env
     environment:
       PORT: "8000"
-      YTDLP_COOKIE_FILE: "/app/cookies.txt"
+      YTDLP_COOKIE_FILE: "/app/host_data/cookies.txt"
       YTDLP_USE_BGUTIL: "true"
       YTDLP_BGUTIL_BASE_URL: "http://bgutil-provider:4416"
     ports:
@@ -24,7 +24,7 @@ services:
     volumes:
       - rag_backend_data:/app/data
       - rag_hf_cache:/root/.cache/huggingface
-      - ./backend/data/cookies.txt:/app/cookies.txt:ro
+      - ./backend/data:/app/host_data:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/"]
       interval: 30s
