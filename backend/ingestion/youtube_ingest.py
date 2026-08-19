@@ -1,5 +1,6 @@
 import os
 import yt_dlp
+from yt_dlp.utils import DownloadError
 
 AUDIO_DIR = "data/audios"
 
@@ -55,27 +56,103 @@ def _configure_youtube_client(ydl_opts: dict) -> dict:
     return ydl_opts
 
 
-def download_audio(video_url: str) -> dict:
-    os.makedirs(AUDIO_DIR, exist_ok=True)
-
-    print(f"Requesting audio stream via yt-dlp for {video_url}...")
-
-    ydl_opts = {
+def _build_base_opts() -> dict:
+    return {
         "format": "bestaudio/best",
         "outtmpl": os.path.join(AUDIO_DIR, "%(id)s.%(ext)s"),
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
+        "retries": 5,
+        "fragment_retries": 5,
+        "force_ipv4": True,
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
         }],
     }
-    ydl_opts = _apply_optional_cookiefile(ydl_opts)
-    ydl_opts = _configure_youtube_client(ydl_opts)
 
+
+def _inject_po_token_if_present(ydl_opts: dict) -> dict:
+    """
+    Optional: pass YouTube PO token via env for stricter anti-bot paths.
+    Expected env format example:
+      YTDLP_PO_TOKEN=web.gvs+<token>
+    """
+    po_token = os.getenv("YTDLP_PO_TOKEN", "").strip()
+    if not po_token:
+        return ydl_opts
+
+    extractor_args = ydl_opts.get("extractor_args", {})
+    youtube_args = extractor_args.get("youtube", {})
+    youtube_args["po_token"] = [po_token]
+    extractor_args["youtube"] = youtube_args
+    ydl_opts["extractor_args"] = extractor_args
+    print("yt-dlp PO token is enabled via YTDLP_PO_TOKEN")
+    return ydl_opts
+
+
+def _inject_bgutil_provider_if_enabled(ydl_opts: dict) -> dict:
+    """
+    Enable Brainicism bgutil provider plugin for yt-dlp PO token generation.
+    Requires bgutil-ytdlp-pot-provider to be installed in Python env.
+    """
+    use_bgutil = os.getenv("YTDLP_USE_BGUTIL", "true").lower() in {"1", "true", "yes"}
+    if not use_bgutil:
+        return ydl_opts
+
+    base_url = os.getenv("YTDLP_BGUTIL_BASE_URL", "http://127.0.0.1:4416").strip()
+    extractor_args = ydl_opts.get("extractor_args", {})
+    provider_args = extractor_args.get("youtubepot-bgutilhttp", {})
+    provider_args["base_url"] = [base_url]
+    extractor_args["youtubepot-bgutilhttp"] = provider_args
+    ydl_opts["extractor_args"] = extractor_args
+    print(f"yt-dlp bgutil provider enabled: {base_url}")
+    return ydl_opts
+
+
+def _attempt_download(video_url: str, ydl_opts: dict) -> dict:
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(video_url, download=True)
+        return ydl.extract_info(video_url, download=True)
+
+
+def download_audio(video_url: str) -> dict:
+    os.makedirs(AUDIO_DIR, exist_ok=True)
+
+    print(f"Requesting audio stream via yt-dlp for {video_url}...")
+
+    # Try multiple client profiles because VPS IPs are often challenged by YouTube.
+    # 1) cookie + web mode
+    # 2) cookie + ios mode
+    # 3) cookie + android mode
+    client_profiles = ["web", "ios", "android"]
+    info = None
+    last_error = None
+
+    for client in client_profiles:
+        ydl_opts = _build_base_opts()
+        ydl_opts = _apply_optional_cookiefile(ydl_opts)
+        ydl_opts = _configure_youtube_client(ydl_opts)
+        ydl_opts = _inject_bgutil_provider_if_enabled(ydl_opts)
+        ydl_opts = _inject_po_token_if_present(ydl_opts)
+
+        # Override client profile per attempt.
+        extractor_args = ydl_opts.get("extractor_args", {})
+        youtube_args = extractor_args.get("youtube", {})
+        youtube_args["player_client"] = [client]
+        extractor_args["youtube"] = youtube_args
+        ydl_opts["extractor_args"] = extractor_args
+
+        print(f"yt-dlp attempt with player client: {client}")
+        try:
+            info = _attempt_download(video_url, ydl_opts)
+            break
+        except DownloadError as e:
+            last_error = e
+            print(f"yt-dlp failed with client '{client}': {e}")
+
+    if info is None and last_error is not None:
+        raise last_error
 
     video_id = info["id"]
     audio_path = os.path.join(AUDIO_DIR, f"{video_id}.mp3")
@@ -98,9 +175,13 @@ def extract_playlist_urls(playlist_url: str) -> list[str]:
         "no_warnings": True,
         "extract_flat": True,
         "skip_download": True,
+        "retries": 5,
+        "force_ipv4": True,
     }
     ydl_opts = _apply_optional_cookiefile(ydl_opts)
     ydl_opts = _configure_youtube_client(ydl_opts)
+    ydl_opts = _inject_bgutil_provider_if_enabled(ydl_opts)
+    ydl_opts = _inject_po_token_if_present(ydl_opts)
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(playlist_url, download=False)

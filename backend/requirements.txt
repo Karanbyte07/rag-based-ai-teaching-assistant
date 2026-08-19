@@ -10,5 +10,6 @@ faiss-cpu
 fastapi
 uvicorn[standard]
 requests
-yt-dlp
+yt-dlp>=2025.5.22
+bgutil-ytdlp-pot-provider
 google-genai
