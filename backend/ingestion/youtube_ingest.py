@@ -1,4 +1,5 @@
 import os
+import shutil
 import yt_dlp
 from yt_dlp.utils import DownloadError
 
@@ -14,8 +15,16 @@ def _apply_optional_cookiefile(ydl_opts: dict) -> dict:
     use_cookies = os.getenv("YTDLP_USE_COOKIES", "true").lower() in {"1", "true", "yes"}
 
     if use_cookies and os.path.isfile(cookie_file):
-        ydl_opts["cookiefile"] = cookie_file
-        print(f"Using yt-dlp cookie file: {cookie_file}")
+        runtime_cookie_file = os.getenv("YTDLP_RUNTIME_COOKIE_FILE", "/tmp/yt-dlp-cookies.txt")
+        try:
+            # yt-dlp may try to update cookie jar; use a writable runtime copy.
+            shutil.copyfile(cookie_file, runtime_cookie_file)
+            ydl_opts["cookiefile"] = runtime_cookie_file
+            print(f"Using yt-dlp cookie file: {cookie_file} -> {runtime_cookie_file}")
+        except Exception as e:
+            # Fallback to original path if copy fails for any reason.
+            ydl_opts["cookiefile"] = cookie_file
+            print(f"Failed to copy cookie file to runtime path ({e}); using original: {cookie_file}")
     elif use_cookies:
         print(f"yt-dlp cookie file not found at: {cookie_file}")
     else:
