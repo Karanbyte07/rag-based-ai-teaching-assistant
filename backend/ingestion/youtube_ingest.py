@@ -14,16 +14,23 @@ def download_audio(video_url: str) -> dict:
         "outtmpl": os.path.join(AUDIO_DIR, "%(id)s.%(ext)s"),
         "quiet": True,
         "no_warnings": True,
-        # Avoid postprocessing so we keep the raw audio file
-        "postprocessors": [],
+        "noplaylist": True,
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+        }],
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["android"],
+            }
+        },
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(video_url, download=True)
 
     video_id = info["id"]
-    ext = info.get("ext", "m4a")
-    audio_path = os.path.join(AUDIO_DIR, f"{video_id}.{ext}")
+    audio_path = os.path.join(AUDIO_DIR, f"{video_id}.mp3")
 
     print(f"Downloaded audio to {audio_path}")
 
@@ -41,7 +48,7 @@ def extract_playlist_urls(playlist_url: str) -> list[str]:
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
-        "extract_flat": True,   # don't download, just list entries
+        "extract_flat": True,
         "skip_download": True,
     }
 
