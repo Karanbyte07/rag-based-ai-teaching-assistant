@@ -23,6 +23,38 @@ def _apply_optional_cookiefile(ydl_opts: dict) -> dict:
     return ydl_opts
 
 
+def _configure_youtube_client(ydl_opts: dict) -> dict:
+    """
+    Use client profile based on auth mode:
+    - With cookies: prefer web client so browser cookies are honored.
+    - Without cookies: keep android client fallback.
+    """
+    has_cookiefile = bool(ydl_opts.get("cookiefile"))
+
+    if has_cookiefile:
+        ydl_opts["extractor_args"] = {
+            "youtube": {
+                "player_client": ["web"],
+            }
+        }
+        ydl_opts["http_headers"] = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/127.0.0.0 Safari/537.36"
+            )
+        }
+        print("yt-dlp using web client mode because cookie auth is enabled")
+    else:
+        ydl_opts["extractor_args"] = {
+            "youtube": {
+                "player_client": ["android"],
+            }
+        }
+
+    return ydl_opts
+
+
 def download_audio(video_url: str) -> dict:
     os.makedirs(AUDIO_DIR, exist_ok=True)
 
@@ -38,13 +70,9 @@ def download_audio(video_url: str) -> dict:
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
         }],
-        "extractor_args": {
-            "youtube": {
-                "player_client": ["android"],
-            }
-        },
     }
     ydl_opts = _apply_optional_cookiefile(ydl_opts)
+    ydl_opts = _configure_youtube_client(ydl_opts)
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(video_url, download=True)
@@ -72,6 +100,7 @@ def extract_playlist_urls(playlist_url: str) -> list[str]:
         "skip_download": True,
     }
     ydl_opts = _apply_optional_cookiefile(ydl_opts)
+    ydl_opts = _configure_youtube_client(ydl_opts)
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(playlist_url, download=False)
