@@ -8,13 +8,14 @@ services:
       - ../envs/rag.backend.prod.env
     environment:
       PORT: "8000"
-      YTDLP_COOKIE_FILE: "/app/data/cookies.txt"
+      YTDLP_COOKIE_FILE: "/app/cookies.txt"
     ports:
       - "8000:8000"
     restart: unless-stopped
     volumes:
       - rag_backend_data:/app/data
       - rag_hf_cache:/root/.cache/huggingface
+      - ./backend/data/cookies.txt:/app/cookies.txt:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/"]
       interval: 30s

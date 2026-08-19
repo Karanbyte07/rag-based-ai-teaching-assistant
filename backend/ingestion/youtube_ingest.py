@@ -15,6 +15,10 @@ def _apply_optional_cookiefile(ydl_opts: dict) -> dict:
     if use_cookies and os.path.isfile(cookie_file):
         ydl_opts["cookiefile"] = cookie_file
         print(f"Using yt-dlp cookie file: {cookie_file}")
+    elif use_cookies:
+        print(f"yt-dlp cookie file not found at: {cookie_file}")
+    else:
+        print("yt-dlp cookie usage disabled via YTDLP_USE_COOKIES")
 
     return ydl_opts
 
