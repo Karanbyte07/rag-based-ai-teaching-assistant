@@ -5,7 +5,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     env_file:
-      - ../envs/rag.backend.prod.env
+      - .env
     environment:
       PORT: "8000"
     ports:
