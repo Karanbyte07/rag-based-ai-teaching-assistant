@@ -10,5 +10,5 @@ faiss-cpu
 fastapi
 uvicorn[standard]
 requests
-pytubefix
+yt-dlp
 google-genai
