@@ -86,7 +86,7 @@ POST /chat  { question, video_id?, top_k? }
 | **LLM** | Azure OpenAI **or** Google Gemini (`gemini-2.0-flash`) — switchable via `LLM_PROVIDER` |
 | **Backend** | FastAPI, `BackgroundTasks`, Pydantic v2 |
 | **Frontend** | React 19, React Router v7, Tailwind CSS, `react-markdown` |
-| **Containerization** | Docker (python:3.11-slim + ffmpeg) |
+| **Containerization** | Docker (python:3.11-slim + ffmpeg + Deno) |
 
 ---
 
@@ -114,9 +114,9 @@ POST /chat  { question, video_id?, top_k? }
 │   │   └── retrieve.py            # FAISS similarity search + optional video_id post-filter
 │   ├── ingest.py                  # CLI entrypoint: python ingest.py <url>
 │   ├── main.py                    # FastAPI app entrypoint + CORS config
-│   ├── Dockerfile                 # python:3.11-slim + ffmpeg + requirements
+│   ├── Dockerfile                 # python:3.11-slim + ffmpeg + Deno + requirements
 │   └── requirements.txt
-│
+│      
 ├── frontend/
 │   └── src/
 │       ├── pages/                 # HomePage, ChatPage, LecturesPage, ProcessingPage, SettingsPage, NotFoundPage
@@ -245,7 +245,7 @@ docker-compose up --build
 
 ## ⚠️ Known Issues
 
-### YouTube Bot-Detection (Unresolved)
+### YouTube Bot-Detection on Cloud-Hosted IPs (Unresolved)
 
 YouTube's bot-detection can block audio download requests when running on a server, causing ingestion to fail with `HTTP 403` or `"Sign in to confirm you're not a bot"` errors. This is a well-known limitation of `yt-dlp` and does not affect local runs.
 

@@ -9,8 +9,15 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     libgomp1 \
     build-essential \
+    curl \
+    unzip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# install deno for the yt-dlp
+RUN curl -fsSL https://deno.land/install.sh | sh
+ENV DENO_INSTALL="/root/.deno"
+ENV PATH="$DENO_INSTALL/bin:$PATH"
 
 
 # ── Set working directory ─────────────────────────────────────
