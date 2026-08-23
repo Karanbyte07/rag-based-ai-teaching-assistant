@@ -87,7 +87,6 @@ POST /chat  { question, video_id?, top_k? }
 | **Backend** | FastAPI, `BackgroundTasks`, Pydantic v2 |
 | **Frontend** | React 19, React Router v7, Tailwind CSS, `react-markdown` |
 | **Containerization** | Docker (python:3.11-slim + ffmpeg) |
-| **Deployment** | Hostinger VPS (backend) + Netlify (frontend) |
 
 ---
 
@@ -129,7 +128,6 @@ POST /chat  { question, video_id?, top_k? }
 │       └── styles/                # Global Tailwind styles
 │
 ├── docker-compose.yml             # Local dev: backend + named volumes for data & HF cache
-├── netlify.toml                   # Netlify build config + SPA fallback redirect
 └── .env.example                   # All required environment variables with comments
 ```
 
@@ -148,7 +146,6 @@ POST /chat  { question, video_id?, top_k? }
 | Branch | Purpose |
 |---|---|
 | **`main`** | Stable version for **local running** — full FastAPI backend + React frontend + FAISS |
-| **`deployment`** | Deployment-ready version — configured for **Netlify** (frontend) and **Hostinger VPS** (backend) |
 | **`basic-v1`** | The earlier prototype — script-based pipeline with manual video files, Whisper, pickle-based similarity, and CLI chat |
 
 ---
@@ -248,9 +245,9 @@ docker-compose up --build
 
 ## ⚠️ Known Issues
 
-### YouTube Bot-Detection on Deployed Servers (Unresolved)
+### YouTube Bot-Detection (Unresolved)
 
-YouTube's bot-detection can block audio download requests made from cloud/VPS server IPs, causing ingestion to fail with `HTTP 403` or `"Sign in to confirm you're not a bot"` errors. This is a well-known, industry-wide limitation of `yt-dlp` on hosted servers and does not affect local runs.
+YouTube's bot-detection can block audio download requests when running on a server, causing ingestion to fail with `HTTP 403` or `"Sign in to confirm you're not a bot"` errors. This is a well-known limitation of `yt-dlp` and does not affect local runs.
 
 > ✅ **Ingestion works reliably when run locally.**
 
