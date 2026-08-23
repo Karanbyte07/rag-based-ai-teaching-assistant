@@ -79,15 +79,15 @@ POST /chat  { question, video_id?, top_k? }
 
 | Layer | Technology |
 |---|---|
-| **Audio Download** | `yt-dlp` (android player client bypass), `ffmpeg` |
+| **Audio Download** | `yt-dlp`, `ffmpeg` |
 | **Speech-to-Text** | `faster-whisper` (CTranslate2, `base` model, `int8` quantized) |
 | **Embeddings** | `sentence-transformers` — `all-MiniLM-L6-v2` (384-dim) |
 | **Vector Store** | `faiss-cpu` — `IndexFlatIP` with L2-normalized vectors (= cosine similarity) |
 | **LLM** | Azure OpenAI **or** Google Gemini (`gemini-2.0-flash`) — switchable via `LLM_PROVIDER` |
 | **Backend** | FastAPI, `BackgroundTasks`, Pydantic v2 |
 | **Frontend** | React 19, React Router v7, Tailwind CSS, `react-markdown` |
-| **Containerization** | Docker (python:3.11-slim + ffmpeg + Deno) |
-| **Deployment** | Railway (backend) + Netlify (frontend) |
+| **Containerization** | Docker (python:3.11-slim + ffmpeg) |
+| **Deployment** | Hostinger VPS (backend) + Netlify (frontend) |
 
 ---
 
@@ -115,7 +115,7 @@ POST /chat  { question, video_id?, top_k? }
 │   │   └── retrieve.py            # FAISS similarity search + optional video_id post-filter
 │   ├── ingest.py                  # CLI entrypoint: python ingest.py <url>
 │   ├── main.py                    # FastAPI app entrypoint + CORS config
-│   ├── Dockerfile                 # python:3.11-slim + ffmpeg + Deno + requirements
+│   ├── Dockerfile                 # python:3.11-slim + ffmpeg + requirements
 │   └── requirements.txt
 │
 ├── frontend/
@@ -135,21 +135,21 @@ POST /chat  { question, video_id?, top_k? }
 
 ### 🗂️ Legacy Code (`backend/legacy/`)
 
-`backend/legacy/` contains the **original manual pipeline** this project evolved from, kept for reference and not imported anywhere in the active application:
+`backend/legacy/` is the **basic version of this project** — built earlier before the system became a fully automated, API-driven pipeline. These files are kept for reference and are not imported anywhere in the active application:
 
-| File | What it was | Replaced by |
+| File | Earlier (basic version) | Now (updated version) |
 |---|---|---|
-| `extract_audio.py` | Scanned a local `data/videos/` folder and ran `ffmpeg` on each `.mkv` file manually | `ingestion/youtube_ingest.py` → `download_audio()` |
-| `transcribe.py` | Original `openai-whisper` transcription script (synchronous, eager-loaded) | `ingestion/transcribe.py` → `faster-whisper` (lazy-loaded, `int8` quantized) |
-| `chat.py` | CLI Q&A script — `input()` → `retrieve()` → Azure OpenAI → print to stdout + write to `data/response.txt` | `api/routes_chat.py` → full REST endpoint with dual LLM support |
+| `extract_audio.py` | Manually scanned a local `data/videos/` folder and extracted audio via `ffmpeg` | Automated — `yt-dlp` downloads audio directly from any YouTube URL |
+| `transcribe.py` | Original `openai-whisper` script — synchronous, eager-loaded | `faster-whisper` — lazy-loaded, `int8` quantized, faster on CPU |
+| `chat.py` | CLI-based Q&A — `input()` prompt → Azure OpenAI → printed to stdout | Full REST `POST /chat` endpoint with dual LLM support and a React frontend |
 
 ### 🌿 Branches
 
-| Branch | Description |
+| Branch | Purpose |
 |---|---|
-| **`main`** | Current, actively developed version (FastAPI + React + FAISS + async ingestion) |
-| **`basic-v1`** | Original prototype — linear script-based pipeline: manual video files → Whisper → pickle-based cosine similarity → CLI chat. No FAISS, no FastAPI, no frontend. Kept as a snapshot of the project's starting point. |
-| `frontend`, `v3`, `optimization`, `deployment*`, `bug-fix*` | Development branches from various build stages; progressively merged into `main` |
+| **`main`** | Stable version for **local running** — full FastAPI backend + React frontend + FAISS |
+| **`deployment`** | Deployment-ready version — configured for **Netlify** (frontend) and **Hostinger VPS** (backend) |
+| **`basic-v1`** | The earlier prototype — script-based pipeline with manual video files, Whisper, pickle-based similarity, and CLI chat |
 
 ---
 
@@ -244,51 +244,15 @@ docker-compose up --build
 
 ---
 
-## ☁️ Deployment
-
-### Backend → Railway
-
-1. Connect your GitHub repo to Railway and point it at the `backend/` directory (the `Dockerfile` is inside).
-2. **Add a persistent Volume** mounted at `/app/data` — this is **critical**. The FAISS index (`data/faiss_index/`), audio files (`data/audios/`), and chunk metadata are stored on disk and would be wiped on every redeploy without it.
-3. Set all required environment variables in the Railway dashboard.
-
-### Frontend → Netlify
-
-1. Connect your GitHub repo to Netlify. Build settings are pre-configured in [`netlify.toml`](netlify.toml):
-   - **Base:** `frontend`
-   - **Build command:** `npm run build`
-   - **Publish directory:** `dist`
-2. Set `VITE_API_URL` in the Netlify environment variables to your deployed Railway backend URL.
-3. The `netlify.toml` also includes a `/api/*` proxy redirect to avoid mixed-content HTTPS→HTTP issues.
-
 ---
 
 ## ⚠️ Known Issues
 
-### YouTube Bot-Detection on Cloud-Hosted IPs (Unresolved)
+### YouTube Bot-Detection on Deployed Servers (Unresolved)
 
-YouTube applies stricter bot-detection to requests originating from **datacenter/cloud IP ranges** (Railway, AWS, GCP, etc.) compared to residential connections. In practice, ingestion that works reliably on a local machine can intermittently fail on the deployed backend with errors such as:
+YouTube's bot-detection can block audio download requests made from cloud/VPS server IPs, causing ingestion to fail with `HTTP 403` or `"Sign in to confirm you're not a bot"` errors. This is a well-known, industry-wide limitation of `yt-dlp` on hosted servers and does not affect local runs.
 
-```
-HTTP Error 403: Forbidden
-Sign in to confirm you're not a bot
-```
-
-**Mitigations already attempted (in the current codebase):**
-
-- Forcing `yt-dlp`'s **Android player client** (`player_client: ["android"]`) to bypass some web-client-specific JS challenges.
-- Installing **Deno** inside the Docker image so `yt-dlp` can solve YouTube's JavaScript signature challenges natively.
-- Passing **authenticated YouTube cookies** via an environment variable, written to disk at container startup.
-- Trying **`pytubefix`** with the `ANDROID_VR` client as an alternative extraction path.
-
-**Current status:** These mitigations reduce the failure rate but don't eliminate it. YouTube's detection changes frequently, and datacenter IPs (including Railway's) remain more likely to be challenged than a residential IP. This is a **well-documented, industry-wide limitation** of `yt-dlp`/`pytubefix` on cloud platforms, not a bug specific to this codebase.
-
-> ✅ **Ingestion is generally reliable when run locally.**
-
-**Possible future fixes:**
-- Routing outbound YouTube requests through a **residential proxy**.
-- Self-hosting the backend on a **VPS with a less-flagged IP range** (e.g., Hetzner, OVH).
-- Exploring `yt-dlp`'s `--cookies-from-browser` in a persistent headless browser sidecar.
+> ✅ **Ingestion works reliably when run locally.**
 
 ---
 
@@ -307,7 +271,7 @@ Sign in to confirm you're not a bot
 
 ### Stage 1 — Audio Download (`ingestion/youtube_ingest.py`)
 
-`yt-dlp` downloads the best audio-only stream for a given video URL and post-processes it to MP3 via `ffmpeg`. The **Android player client** (`player_client: ["android"]`) is configured to reduce bot-detection friction on cloud IPs. For playlists, `extract_flat` mode extracts all video IDs without downloading, which are then dispatched to a `ThreadPoolExecutor` with configurable `max_workers`.
+`yt-dlp` downloads the best audio-only stream for a given video URL and post-processes it to MP3 via `ffmpeg`. For playlists, `extract_flat` mode extracts all video IDs without downloading, which are then dispatched to a `ThreadPoolExecutor` with configurable `max_workers`.
 
 ### Stage 2 — Transcription (`ingestion/transcribe.py`)
 
